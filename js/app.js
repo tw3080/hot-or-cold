@@ -1,28 +1,33 @@
+// Initialize variables
+var guesses = [];
+var alreadyGuessed;
+var randomNum;
+var count = 0;
+
 // Generates random number between 1 and 100
 function randomNumber() {
-	var number = Math.floor((Math.random() * 100) + 1);
-	console.log(number);
-	return number;
+	randomNum = Math.floor((Math.random() * 100) + 1);
+	// console.log(randomNum);
 }
 
+// Counts number of guesses the user has made
 function counter() {
-	/*
-	TODO: first click not registering unless counter invoked outside?
-	Stop count from incrementing if guess is not between 1 and 100
-	*/
-	count = 0;
-	$("#guessButton").click(function() {
-		count++;
-		$("#count").text(count);
-	});
+	count++;
+	$("#count").text(count);
 }
 
 // Starts new game
-/*
-TODO: add the rest of the functionality
-*/
 function newGame() {
+	$("#feedback").text("Make your Guess!");
+	$("#guessList").text("");
+	$("#count").text("0");
+	count = 0;
 	randomNumber();
+}
+
+// Clears input field
+function clearInput() {
+	$("#userGuess").val('');
 }
 
 $(document).ready(function(){
@@ -37,43 +42,54 @@ $(document).ready(function(){
   	});
 
 		// Generates random number between 1 and 100 on page load
-		var randomNum = randomNumber(); // Do I have to make this its own variable?
-		counter();
+		randomNumber();
 
-		// Determines how close guessed number is to actual number
+		// Checks for valid input
 		$("#guessButton").click(function(e) {
-			/* TODO: reduce repetition */
 			e.preventDefault();
 			var guess = $("#userGuess").val();
 			var guessInt = parseInt(guess);
-			var diff;
-			if (guessInt > randomNum) {
-				diff = guessInt - randomNum;
-			} else if (guessInt < randomNum) {
-				diff = randomNum - guessInt;
-			}
-			// does this need to be in a new if statement?
-			if (guessInt == randomNum) {
-				$("#feedback").text("You won! Click \'+NEW GAME\' to play again.");
-				$("#guessButton").css('visibility', 'hidden');
-			} else if (guessInt > 100 || guessInt < 1) {
+			clearInput();
+			if (guessInt > 100 || guessInt < 1) {
 				alert("Please enter a number between 1 and 100.");
-			} else if (diff >= 50) {
+				return;
+			} else if (isNaN(guessInt)) {
+				alert("Please enter a number between 1 and 100.");
+				return;
+			}
+			for (i = 0; i < guesses.length; i++) {
+				if (guessInt == guesses[i]) {
+					alert("You already guessed that number!");
+					return;
+				}
+			}
+			var diff = Math.abs(guessInt - randomNum);
+
+			// Determines how close guessed number is to actual number
+			counter();
+			if (diff === 0) {
+				$("#feedback").text("You won! Click '+NEW GAME' to play again.");
+				$("#guessButton").css('visibility', 'hidden');
+				$("#userGuess").prop('disabled', true);
+			} else if (diff >= 40) {
 				$("#feedback").text("Ice cold");
-			} else if (diff < 50 && diff >= 30) {
+			} else if (diff >= 20) {
 				$("#feedback").text("Cold");
-			} else if (diff < 30 && diff >= 20) {
+			} else if (diff >= 10) {
 				$("#feedback").text("Warm");
-			} else if (diff < 20 && diff >= 10) {
+			} else if (diff >= 5) {
 				$("#feedback").text("Hot");
+			} else if (diff > 0) {
+				$("#feedback").text("Super hot")
 			}
 
+			// Add guessed number to #guessList and guesses; clear input form
 			$("#guessList").append('<li>' + guessInt + '</li>');
-			$("#userGuess").val('');
+			guesses.push(guessInt);
+			clearInput();
 
 		});
 
 		// Starts new game
 		$(document).on('click', '.new', newGame);
-
 });
